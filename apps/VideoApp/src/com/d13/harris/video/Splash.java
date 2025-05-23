@@ -32,7 +32,7 @@ public class Splash extends Activity {
                 } finally {
                     finish();
                     startActivity(new Intent("com.d13.harris.video.Video"));
-                    stop();
+                    // stop(); // Thread.stop() is deprecated and unsafe.
                 }
             }
         };

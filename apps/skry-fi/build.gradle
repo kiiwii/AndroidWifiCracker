@@ -1,0 +1,36 @@
+apply plugin: 'com.android.application'
+
+android {
+    namespace "com.department13.skryfi"
+    compileSdkVersion 33
+
+    defaultConfig {
+        applicationId "com.department13.skryfi"
+        minSdkVersion 16
+        targetSdkVersion 33
+        versionCode 1
+        versionName "1.0"
+    }
+
+    sourceSets {
+        main {
+            manifest.srcFile 'AndroidManifest.xml'
+            java.srcDirs = ['src']
+            res.srcDirs = ['res']
+            assets.srcDirs = ['assets'] // Assuming assets folder might be used
+            // jniLibs.srcDirs = ['libs'] // If you have .so files
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    implementation files('jars/android-json-rpc-0.2.1.jar')
+    implementation 'androidx.core:core:1.9.0' // Added for NotificationCompat
+}

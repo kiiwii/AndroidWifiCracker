@@ -5,10 +5,12 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
 
-import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat; // Added this import
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -348,7 +350,12 @@ public class SurveyManagerService extends Service {
 			previous_wifi_state = wifi_manager.isWifiEnabled();
 			if (!previous_wifi_state)
 			{
-				wifi_manager.setWifiEnabled(true);
+				// wifi_manager.setWifiEnabled(true); // Deprecated in API 29. App should prompt user to enable Wi-Fi.
+				// Example: Intent intent = new Intent(Settings.ACTION_WIFI_SETTINGS);
+                // intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                // startActivity(intent);
+                Log.w(LOG_TAG, "Wifi is disabled. User needs to enable it manually.");
+                Toast.makeText(this, "Please enable Wi-Fi", Toast.LENGTH_LONG).show();
 			}
 
 			IntentFilter i = new IntentFilter();
@@ -402,19 +409,42 @@ public class SurveyManagerService extends Service {
     }
     
 	private boolean notifications_enabled = false;
+	private static final String CHANNEL_ID = "skryfi_channel";
+	private static final CharSequence CHANNEL_NAME = "Skry-Fi Channel";
+
+	// onCreate() is already defined below, merged createNotificationChannel call there.
+
+	private void createNotificationChannel() {
+		if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+			NotificationChannel channel = new NotificationChannel(CHANNEL_ID,
+					CHANNEL_NAME,
+					NotificationManager.IMPORTANCE_DEFAULT);
+			NotificationManager manager = getSystemService(NotificationManager.class);
+			if (manager != null) {
+				manager.createNotificationChannel(channel);
+			}
+		}
+	}
+
 	public void notification_bar_message(String message)
 	{
 		if (notifications_enabled )
 		{
-			NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-			Notification n = new Notification(R.drawable.icon, message, System.currentTimeMillis());
-			n.defaults |= Notification.DEFAULT_VIBRATE | Notification.DEFAULT_SOUND;
-			n.flags |= Notification.FLAG_AUTO_CANCEL;
-			Context context = getApplicationContext();
-			Intent notificationIntent = new Intent(this, SurveyManagerService.class);
-			PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
-			n.setLatestEventInfo(context, message, "", contentIntent);
-			nm.notify(1, n);
+			NotificationManagerCompat nm = NotificationManagerCompat.from(this);
+			
+			Intent notificationIntent = new Intent(this, HomeScreen.class); // Or relevant activity
+			PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
+			NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
+					.setSmallIcon(R.drawable.icon)
+					.setContentTitle("Skry-Fi")
+					.setContentText(message)
+					.setPriority(NotificationCompat.PRIORITY_DEFAULT)
+					.setContentIntent(contentIntent)
+					.setAutoCancel(true)
+					.setDefaults(NotificationCompat.DEFAULT_VIBRATE | NotificationCompat.DEFAULT_SOUND);
+			
+			nm.notify(1, builder.build());
 		}
 	}
     
