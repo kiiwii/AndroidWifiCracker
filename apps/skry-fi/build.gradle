@@ -33,4 +33,6 @@ android {
 dependencies {
     implementation files('jars/android-json-rpc-0.2.1.jar')
     implementation 'androidx.core:core:1.9.0' // Added for NotificationCompat
+    implementation 'androidx.activity:activity:1.6.1' // For ActivityCompat
+    implementation 'androidx.appcompat:appcompat:1.6.1' // For compatibility
 }

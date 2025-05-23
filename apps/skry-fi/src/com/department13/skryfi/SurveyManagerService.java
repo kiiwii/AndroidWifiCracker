@@ -26,6 +26,9 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
+import android.Manifest;
+import android.content.pm.PackageManager;
+import androidx.core.content.ContextCompat;
 
 public class SurveyManagerService extends Service {
 
@@ -356,6 +359,15 @@ public class SurveyManagerService extends Service {
                 // startActivity(intent);
                 Log.w(LOG_TAG, "Wifi is disabled. User needs to enable it manually.");
                 Toast.makeText(this, "Please enable Wi-Fi", Toast.LENGTH_LONG).show();
+			}
+
+			// Android 13+ 需检查 NEARBY_WIFI_DEVICES 权限
+			if (android.os.Build.VERSION.SDK_INT >= 33) {
+				if (ContextCompat.checkSelfPermission(this, Manifest.permission.NEARBY_WIFI_DEVICES) != PackageManager.PERMISSION_GRANTED) {
+					Log.w(LOG_TAG, "NEARBY_WIFI_DEVICES permission not granted. WiFi scan not started.");
+					Toast.makeText(this, "WiFi scan requires NEARBY_WIFI_DEVICES permission.", Toast.LENGTH_LONG).show();
+					return;
+				}
 			}
 
 			IntentFilter i = new IntentFilter();

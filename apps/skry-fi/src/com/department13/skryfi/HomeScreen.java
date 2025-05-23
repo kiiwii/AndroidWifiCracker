@@ -13,10 +13,27 @@ import android.view.Window;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.Manifest;
+import android.content.pm.PackageManager;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import android.os.Build;
 
 public class HomeScreen extends Activity
 {
 	private final static String LOG_TAG = "HomeScreen";
+	private static final int PERMISSION_REQUEST_CODE = 1001;
+	private static final String[] PERMISSIONS = new String[] {
+		Manifest.permission.ACCESS_FINE_LOCATION,
+		Manifest.permission.ACCESS_COARSE_LOCATION,
+		Manifest.permission.ACCESS_WIFI_STATE,
+		Manifest.permission.CHANGE_WIFI_STATE
+	};
+	private static final String[] ANDROID_13_PERMISSIONS = new String[] {
+		Manifest.permission.NEARBY_WIFI_DEVICES,
+		Manifest.permission.POST_NOTIFICATIONS
+	};
+
 	public void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
@@ -47,6 +64,8 @@ public class HomeScreen extends Activity
             	openOptionsMenu(); 
             } 
         }, 1000);
+
+        checkAndRequestPermissions();
 	}
 	
 	//Show Menu
@@ -105,5 +124,35 @@ public class HomeScreen extends Activity
         }
      }
 
- 
+    private void checkAndRequestPermissions() {
+        // Collect all needed permissions
+        java.util.List<String> permissionsNeeded = new java.util.ArrayList<>();
+        for (String perm : PERMISSIONS) {
+            if (ContextCompat.checkSelfPermission(this, perm) != PackageManager.PERMISSION_GRANTED) {
+                permissionsNeeded.add(perm);
+            }
+        }
+        if (Build.VERSION.SDK_INT >= 33) {
+            for (String perm : ANDROID_13_PERMISSIONS) {
+                if (ContextCompat.checkSelfPermission(this, perm) != PackageManager.PERMISSION_GRANTED) {
+                    permissionsNeeded.add(perm);
+                }
+            }
+        }
+        if (!permissionsNeeded.isEmpty()) {
+            ActivityCompat.requestPermissions(this, permissionsNeeded.toArray(new String[0]), PERMISSION_REQUEST_CODE);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            for (int i = 0; i < permissions.length; i++) {
+                if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(this, "Permission denied: " + permissions[i], Toast.LENGTH_LONG).show();
+                }
+            }
+        }
+    }
 }
